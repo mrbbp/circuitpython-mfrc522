@@ -1,8 +1,24 @@
-from machine import Pin, SPI
-from os import uname
+"""
+CircuitPython Interface for RC522 boards.
+"""
+
+# 3rd party
+import busio
+import digitalio
+from adafruit_bus_device.spi_device import SPIDevice
+from microcontroller import Pin
 
 
 class MFRC522:
+	"""
+	CircuitPython Interface for RC522 boards.
+
+	:param sck: The SPI Clock Pin. Typically ``board.SCK``.
+	:param mosi: The SPI MOSI Pin. Typically ``board.MOSI``.
+	:param miso: The SPI MISO Pin. Typically ``board.MISO``.
+	:param rst: The pin connected to the RST terminal on the RC522 board.
+	:param cs: The SPI chip select pin, connected to the SDA terminal on the RC522 board.
+	"""
 
 	OK = 0
 	NOTAGERR = 1
@@ -13,57 +29,46 @@ class MFRC522:
 	AUTHENT1A = 0x60
 	AUTHENT1B = 0x61
 
-	def __init__(self, sck, mosi, miso, rst, cs):
+	def __init__(self, sck: Pin, mosi: Pin, miso: Pin, rst: Pin, cs: Pin):
 
-		self.sck = Pin(sck, Pin.OUT)
-		self.mosi = Pin(mosi, Pin.OUT)
-		self.miso = Pin(miso)
-		self.rst = Pin(rst, Pin.OUT)
-		self.cs = Pin(cs, Pin.OUT)
+		self.cs = digitalio.DigitalInOut(cs)
 
-		self.rst.value(0)
-		self.cs.value(1)
-		
-		board = uname()[0]
+		self.rst = digitalio.DigitalInOut(rst)
+		self.rst.switch_to_output()
 
-		if board == 'WiPy' or board == 'LoPy' or board == 'FiPy':
-			self.spi = SPI(0)
-			self.spi.init(SPI.MASTER, baudrate=1000000, pins=(self.sck, self.mosi, self.miso))
-		elif board == 'esp8266':
-			self.spi = SPI(baudrate=100000, polarity=0, phase=0, sck=self.sck, mosi=self.mosi, miso=self.miso)
-			self.spi.init()
-		else:
-			raise RuntimeError("Unsupported platform")
+		self.rst.value = 0
+		self.rst.value = 1
 
-		self.rst.value(1)
+		self.spi = busio.SPI(sck, MOSI=mosi, MISO=miso)
+		self.spi_device = SPIDevice(self.spi, self.cs)
+
 		self.init()
 
-	def _wreg(self, reg, val):
+	def _wreg(self, reg: int, val):
 
-		self.cs.value(0)
-		self.spi.write(b'%c' % int(0xff & ((reg << 1) & 0x7e)))
-		self.spi.write(b'%c' % int(0xff & val))
-		self.cs.value(1)
+		with self.spi_device as bus_device:
+			bus_device.write(b'%c' % int(0xff & ((reg << 1) & 0x7e)))
+			bus_device.write(b'%c' % int(0xff & val))
 
-	def _rreg(self, reg):
+	def _rreg(self, reg: int):
 
-		self.cs.value(0)
-		self.spi.write(b'%c' % int(0xff & (((reg << 1) & 0x7e) | 0x80)))
-		val = self.spi.read(1)
-		self.cs.value(1)
+		with self.spi_device as bus_device:
+			bus_device.write(b'%c' % int(0xff & (((reg << 1) & 0x7e) | 0x80)))
+			val = bytearray(1)
+			bus_device.readinto(val)
 
 		return val[0]
 
-	def _sflags(self, reg, mask):
+	def _sflags(self, reg: int, mask: int):
 		self._wreg(reg, self._rreg(reg) | mask)
 
-	def _cflags(self, reg, mask):
+	def _cflags(self, reg: int, mask: int):
 		self._wreg(reg, self._rreg(reg) & (~mask))
 
-	def _tocard(self, cmd, send):
+	def _tocard(self, cmd: int, send):
 
 		recv = []
-		bits = irq_en = wait_irq = n = 0
+		bits = irq_en = wait_irq = 0
 		stat = self.ERR
 
 		if cmd == 0x0E:
@@ -227,3 +232,32 @@ class MFRC522:
 				stat = self.ERR
 
 		return stat
+
+	def set_antenna_gain(self, gain: int):
+		"""
+		Set the MFRC522 Receiver Gain
+
+		:param gain:
+
+		Possible values are:
+
+		* ``0x00 << 4`` -- 000b - 18 dB, minimum
+		* ``0x01 << 4`` -- 001b - 23 dB
+		* ``0x02 << 4`` -- 010b - 18 dB, it seems 010b is a duplicate for 000b
+		* ``0x03 << 4`` -- 011b - 23 dB, it seems 011b is a duplicate for 001b
+		* ``0x04 << 4`` -- 100b - 33 dB, average, and typical default
+		* ``0x05 << 4`` -- 101b - 38 dB
+		* ``0x06 << 4`` -- 110b - 43 dB
+		* ``0x07 << 4`` -- 111b - 48 dB, maximum
+		* ``0x00 << 4`` -- 000b - 18 dB, minimum, convenience for RxGain_18dB
+		* ``0x04 << 4`` -- 100b - 33 dB, average, convenience for RxGain_33dB
+		* ``0x07 << 4`` -- 111b - 48 dB, maximum, convenience for RxGain_48dB
+
+		:return:
+		"""
+
+		# Above table from https://github.com/miguelbalboa/rfid/blob/master/src/MFRC522.h
+		# See also 9.3.3.6 / table 98 of the datasheet (http://www.nxp.com/documents/data_sheet/MFRC522.pdf)
+
+		self._cflags(0x26, 0x07 << 4)
+		self._sflags(0x26, gain & (0x07 << 4))

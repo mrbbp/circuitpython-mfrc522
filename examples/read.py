@@ -1,19 +1,22 @@
+"""
+Example of reading from a card using the ``mfrc522`` module.
+"""
+
+# 3rd party
+import board
+
+# this package
 import mfrc522
-from os import uname
 
 
 def do_read():
 
-	if uname()[0] == 'WiPy':
-		rdr = mfrc522.MFRC522("GP14", "GP16", "GP15", "GP22", "GP17")
-	elif uname()[0] == 'esp8266':
-		rdr = mfrc522.MFRC522(0, 2, 4, 5, 14)
-	else:
-		raise RuntimeError("Unsupported platform")
+	rdr = mfrc522.MFRC522(board.SCK, board.MOSI, board.MISO, board.D2, board.D3)
+	rdr.set_antenna_gain(0x07 << 4)
 
-	print("")
+	print('')
 	print("Place card before reader to read from address 0x08")
-	print("")
+	print('')
 
 	try:
 		while True:
@@ -27,8 +30,8 @@ def do_read():
 				if stat == rdr.OK:
 					print("New card detected")
 					print("  - tag type: 0x%02x" % tag_type)
-					print("  - uid	 : 0x%02x%02x%02x%02x" % (raw_uid[0], raw_uid[1], raw_uid[2], raw_uid[3]))
-					print("")
+					print("  - uid\t : 0x%02x%02x%02x%02x" % (raw_uid[0], raw_uid[1], raw_uid[2], raw_uid[3]))
+					print('')
 
 					if rdr.select_tag(raw_uid) == rdr.OK:
 
