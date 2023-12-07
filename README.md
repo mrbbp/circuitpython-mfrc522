@@ -1,4 +1,4 @@
-# circuitpython-mfrc522
+# circuitpython-RC522
 CircuitPython class to access the MFRC522 RFID reader
 
 <small>Based on the [wendlers/micropython-mfrc522](https://github.com/wendlers/micropython-mfrc522) MicroPython library.
