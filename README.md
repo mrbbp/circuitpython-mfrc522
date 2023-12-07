@@ -14,13 +14,13 @@ Put the modules ``mfrc522.py``, ``examples/read.py``, ``examples/write.py`` to t
 
 I used the following pins for my setup:
 
-| Signal    | GPIO ESP8266 | GPIO WiPy      | Note                                 |
-| --------- | ------------ | -------------- | ------------------------------------ |
-| sck       | 0            | "GP14"         |                                      |
-| mosi      | 2            | "GP16"         |                                      |
-| miso      | 4            | "GP15"         |                                      |
-| rst       | 5            | "GP22"         |                                      |
-| cs        | 14           | "GP14"         |Labeled SDA on most RFID-RC522 boards |
+| Signal    | GPIO RP2040 XIAO | Note                                 |
+| --------- | ---------------- | ------------------------------------ |
+| sck       | D8               |                                      |
+| mosi      | D10              |                                      |
+| miso      | D9               |                                      |
+| rst       | D6               |                                      |
+| cs        | D7               |Labeled SDA on most RFID-RC522 boards |
 
 Now enter the REPL you could run one of the two examples:
 
