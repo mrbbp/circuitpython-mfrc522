@@ -34,7 +34,7 @@ def tag_read():
           led.value = False
           print("Nouveau tag détecté")
           print("  - type de tag : 0x%02x" % tag_type)
-          print("  - uid   : 0x%02x%02x%02x%02x" % (raw_uid[0], raw_uid[1], raw_uid[2], raw_uid[3]))
+          print("  - uuid   : 0x%02x%02x%02x%02x" % (raw_uid[0], raw_uid[1], raw_uid[2], raw_uid[3]))
           print("")
           # récuperation de l'uuid du tag
           for i in range(4):
@@ -45,7 +45,7 @@ def tag_read():
             usb_midi.send(ControlChange(i*2, data2))
             usb_midi.send(ControlChange((i*2)+1, data1))
             time.sleep(.005)
-
+          print("envoie en midi de l'uuid :",raw_uid[0], raw_uid[1], raw_uid[2], raw_uid[3])
           if rdr.select_tag(raw_uid) != rdr.OK:
             print("sélection erronée du tag")
           led.value = True
