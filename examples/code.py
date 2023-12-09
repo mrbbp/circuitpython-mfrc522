@@ -13,8 +13,7 @@ led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
 led.value = True
 
-def do_read():
-
+def tag_read():
   if uname()[0] == 'rp2040':
     # rdr = mfrc522.MFRC522(sck=board.SCK, mosi=board.MOSI, miso=board.MISO, cs=board.D9, rst=board.D8)
     rdr = mfrc522.MFRC522(sck=board.SCK, mosi=board.MOSI, miso=board.MISO, cs=board.D7, rst=board.D6)
@@ -48,17 +47,7 @@ def do_read():
             time.sleep(.005)
 
           if rdr.select_tag(raw_uid) != rdr.OK:
-
-#             key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
-# 
-#             if rdr.auth(rdr.AUTHENT1A, 8, key, raw_uid) == rdr.OK:
-#               print("Address 8 data: %s" % rdr.read(8))
-#               rdr.stop_crypto1()
-#             else:
-#               print("Pas d'Authentication")
             print("sélection erronée du tag")
-            
-          #time.sleep(.5)
           led.value = True
           time.sleep(5)
           
@@ -75,17 +64,4 @@ usb_midi = adafruit_midi.MIDI(
     midi_in=usb_midi.ports[0], in_channel=USB_MIDI_channel - 1,
     midi_out=usb_midi.ports[1], out_channel=USB_MIDI_channel - 1
 )
-
-print(uname())
-# import write
-
-# input_bytes = b"\x00\x0F"
-# output_numbers = list(input_bytes)
-# print(output_numbers)
-
-#print(bytes([0xf,0xe,0xd,0xc,0xb,0xa,9,8,7,6,5,4,3,2,1,0]))
-
-#write.do_write(0xABCDEF9876543210)
-
-# import read
-do_read()
+tag_read()
