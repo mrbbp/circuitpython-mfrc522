@@ -39,6 +39,8 @@ This will wait for a MifareClassic 1k card. As soon the card is detected, it is 
 `circuitpython/code.py` :
 lit le tag sur le lecteur (refactor du code de `do_read.py`), envoie l'uuid en `controlChange` midi (port 0 à 7) en 2 * 7bits.
 
+> nb: les uuid de tags nfc sont encodés en 4 * 8bits(0-255). Le midi supporte uniquement des nombres jusqu'à 7bits (0-127). Le nombre est découpé en 2 * 7 bits et reconstitué dans le code de lecture (en html et Processing, ici).
+
 ## récupération de l'uuid (midiEvent) en js
 ``` js
 function midiMessageReceived(event) {
