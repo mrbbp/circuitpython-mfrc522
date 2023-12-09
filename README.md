@@ -9,6 +9,7 @@ tried to strip things down and make them more "pythonic" so the result is small 
 [CircuitPython](https://github.com/adafruit/circuitpython) boards.
 
 ## Usage
+![le Montage](media/montage.jpg)
 
 Put the modules ``mfrc522.py``, ``examples/read.py``, ``examples/write.py`` to the root of the flash FS on your board.
 
