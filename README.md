@@ -1,6 +1,8 @@
 # Lecture/écriture d'un tag RFID/NFC avec lecteur RC522
 CircuitPython class to access the MFRC522 RFID reader
 
+![medias/montage.jpg]
+
 <small>Based on the [wendlers/micropython-mfrc522](https://github.com/wendlers/micropython-mfrc522) MicroPython library.
 
 Basic class to access RFID readers of the type [MFRC522](http://www.nxp.com/documents/data_sheet/MFRC522.pdf).
