@@ -36,7 +36,7 @@ For detecting, authenticating and writing to a card:
 This will wait for a MifareClassic 1k card. As soon the card is detected, it is authenticated, and
 16 bytes written to address 0x08.
 
-`code.py` :
+`circuitpython/code.py` :
 lit le tag sur le lecteur (refactor du code de `do_read.py`), envoie l'uuid en `controlChange` midi (port 0 à 7) en 2 * 7bits.
 
 ## récupération de l'uuid (midiEvent) en js
