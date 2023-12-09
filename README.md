@@ -1,4 +1,4 @@
-# circuitpython-RC522
+# Lecture/écriture d'un tag RFID/NFC avec lecteur RC522
 CircuitPython class to access the MFRC522 RFID reader
 
 <small>Based on the [wendlers/micropython-mfrc522](https://github.com/wendlers/micropython-mfrc522) MicroPython library.
@@ -36,4 +36,63 @@ This will wait for a MifareClassic 1k card. As soon the card is detected, it is 
 16 bytes written to address 0x08.
 
 `code.py` :
-lit le tag sur le lecteur (reprise du code de `do_read.py` et envoie l'uuid en `controlChange` midi (port 0 à 7) en 2 * 7bits.
+lit le tag sur le lecteur (refactor du code de `do_read.py`), envoie l'uuid en `controlChange` midi (port 0 à 7) en 2 * 7bits.
+
+## récupération de l'uuid (midiEvent) en js
+``` js
+function midiMessageReceived(event) {
+    if (midi[event.data[1]] != null) {
+      midi[event.data[1]].port = event.data[1]
+      midi[event.data[1]].valeur = event.data[2];
+    } else {
+      midi[event.data[1]] = {port:0,valeur:0};
+    }
+    port = event.data[1];
+    valeur = event.data[2];
+    switch(port) {
+      case 7:
+        tag[Math.floor(port/2)] += valeur;
+        document.body.innerHTML += `uuid : <strong>${tag[0].toString(16)} ${tag[1].toString(16)} ${tag[2].toString(16)} ${tag[3].toString(16)}</strong><br>`;
+        break;
+      default:
+        //println(number,value,hex(value),"générique");
+        if (port%2 == 0) { // debut de chiffre
+          tag[Math.floor(port/2)] = valeur*128;
+        } else {
+          tag[Math.floor(port/2)] += valeur;
+          console.log(`${tag[Math.floor(port/2)].toString(16)}`)
+        }
+    }
+}
+```
+
+## récupération de l'uuid avec themidibus avec Processing
+```processing
+import themidibus.*;
+
+MidiBus bus;
+int tag[] = new int[4];
+
+void setup() {
+  MidiBus.list();
+  // 1 -> numero dans liste des input
+  //MidiBus(java.lang.Object parent, int in_device_num, int out_device_num)
+  bus = new MidiBus(this, 1,2);
+}
+
+void controllerChange(int channel, int number, int value) {
+    switch(number) {
+      case 7:
+        tag[floor(number/2)] += value;
+        println("uuid :",hex(tag[0],2),hex(tag[1],2),hex(tag[2],2),hex(tag[3],2));
+        break;
+      default:
+        //println(number,value,hex(value),"générique");
+        if (number%2 == 0) { // debut de chiffre
+          tag[floor(number/2)] = value*128;
+        } else {
+          tag[floor(number/2)] += value;
+        }
+    }
+}
+```
