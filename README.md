@@ -24,11 +24,6 @@ I used the following pins for my setup:
 
 Now enter the REPL you could run one of the two examples:
 
-For detecting, authenticating and reading from a card:
-
-    import read
-    read.do_read()
-
 This will wait for a MifareClassic 1k card. As soon the card is detected, it is authenticated, and
 16 bytes are read from address 0x08.
 
@@ -39,3 +34,6 @@ For detecting, authenticating and writing to a card:
 
 This will wait for a MifareClassic 1k card. As soon the card is detected, it is authenticated, and
 16 bytes written to address 0x08.
+
+`code.py` :
+lit le tag sur le lecteur (reprise du code de `do_read.py` et envoie l'uuid en `controlChange` midi (port 0 à 7) en 2 * 7bits.
