@@ -42,25 +42,21 @@ lit le tag sur le lecteur (refactor du code de `do_read.py`), envoie l'uuid en `
 ``` js
 function midiMessageReceived(event) {
     if (midi[event.data[1]] != null) {
-      midi[event.data[1]].port = event.data[1]
-      midi[event.data[1]].valeur = event.data[2];
-    } else {
-      midi[event.data[1]] = {port:0,valeur:0};
-    }
-    port = event.data[1];
-    valeur = event.data[2];
-    switch(port) {
-      case 7:
-        tag[Math.floor(port/2)] += valeur;
-        document.body.innerHTML += `uuid : <strong>${tag[0].toString(16)} ${tag[1].toString(16)} ${tag[2].toString(16)} ${tag[3].toString(16)}</strong><br>`;
-        break;
-      default:
-        //println(number,value,hex(value),"générique");
-        if (port%2 == 0) { // debut de chiffre
-          tag[Math.floor(port/2)] = valeur*128;
-        } else {
-          tag[Math.floor(port/2)] += valeur;
-          console.log(`${tag[Math.floor(port/2)].toString(16)}`)
+      port = event.data[1];
+        valeur = event.data[2];
+        switch(port) {
+          case 7:
+            tag[Math.floor(port/2)] += valeur;
+            document.body.innerHTML += `uuid : <strong>${tag[0].toString(16)} ${tag[1].toString(16)} ${tag[2].toString(16)} ${tag[3].toString(16)}</strong><br>`;
+            break;
+          default:
+            //println(number,value,hex(value),"générique");
+            if (port%2 == 0) { // debut de chiffre
+              tag[Math.floor(port/2)] = valeur*128;
+            } else {
+              tag[Math.floor(port/2)] += valeur;
+              console.log(`${tag[Math.floor(port/2)].toString(16)}`)
+            }
         }
     }
 }
