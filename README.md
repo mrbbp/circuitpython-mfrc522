@@ -65,7 +65,7 @@ function midiMessageReceived(event) {
 }
 ```
 
-## récupération de l'uuid avec themidibus avec Processing
+## récupération de l'uuid (themidibus) en Processing
 ```processing
 import themidibus.*;
 
