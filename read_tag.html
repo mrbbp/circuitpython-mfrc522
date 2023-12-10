@@ -19,134 +19,62 @@
         color: #333;
         font-family: SourceSansVariable;
         font-weight: 100;
+        box-sizing: border-box;
+        padding: 1rem;
       }
-    aside {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #333;
-      height: 3rem;
-      width: 50vw;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      font-size: 1rem;
-      color: #eee;
-    }
-    article {
-      display: flex;
-      margin: 1rem;
-    }
-    article select {
-      margin: 0 1rem 0 .5rem;
-    }
-    .output {
-      margin: 1rem;
-      border: 1px dotted gray;
-      height: calc(100vh - 8rem);
-      overflow-y: scroll;
-    }
     </style>
-
   </head>
   <body>
-    <!-- commentaire  -->
-    <p class="output" id="outputIn"></p>
-  <aside>commentaire</aside>
     <script>
-      // https://webmidi-examples.glitch.me/
-      // Globals to access them later.
-      let midiIn = [];
-      let midiOut = [];
-      let midi = [];
-      let init = false;
-      let boitier = {in:0,out:0};
-      connect();
-
-      // Start up WebMidi.
-      function connect() {
-        navigator.requestMIDIAccess()
-        .then(
-          (midi) => {
-            midi.addEventListener('statechange', (event) => initBoitier(event.target, false));
-            initBoitier(midi);
-          },
-          (err) => {
-            outputIn.innerHTML = 'Il y a un pb avec le midi';
-            console.log('Something went wrong', err)
-          });
+      var midi, data;
+      console.log("UA :",navigator.userAgent);
+      // start talking to MIDI controller
+      if (navigator.requestMIDIAccess) {
+        navigator.requestMIDIAccess({
+          sysex: false
+        }).then(onMIDISuccess, onMIDIFailure);
+      } else {
+        document.body.innerHTML = "<strong>PAS de support MIDI</strong>";
       }
 
-      function initBoitier(midi, bool) {
-        // Reset.
-        midiIn = [];
-        midiOut = [];
-        if (bool) {
-          init = bool;
-        }
-
-        // MIDI devices that send you data.
-        const inputs = midi.inputs.values();
-        for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
-          midiIn.push(input.value);
-        }
-
-        // MIDI devices that you send data to.
-        const outputs = midi.outputs.values();
-        for (let output = outputs.next(); output && !output.done; output = outputs.next()) {
-          midiOut.push(output.value);
-        }
-        if (!init) { // declaration unique
-          midiIn.map(device => {
-            if (/usb_midi|Herve/.test(device.name)) {
-              // deviceIn = device;
-              boitier.in = device;
-              console.log(boitier.in.name," trouvé");
-            }
-          })
-          midiOut.map(device => {
-            if (/usb_midi|Herve/.test(device.name)) {
-              // deviceOut = device;
-              boitier.out = device;
-              console.log(boitier.out.name," trouvé");
-            }
-          })
-          // initialise le champ texte
-          outputIn.innerHTML = (boitier.in) ?"<strong>boitier détecté : placez un tag sur le lecteur</strong><br>":"<strong>boitier introuvable</strong><br>";
-          // place l'écouteur sur l'entrée midi du boitier
-          boitier.in.addEventListener('midimessage', midiMessageReceived);
-          //
-          //initialise les valeurs du boitier
-          boitier.out.send([0x80, 64, 127],100);
-          // passe le boolean à vrai ne réinitialise pas
-          init = true;
+      // on success
+      function onMIDISuccess(midiData) {
+        document.body.innerHTML = "<strong>support du midi</strong> Placez un tag sur le lecteur<br>"
+        // this is all our MIDI data
+        midi = midiData;
+        var allInputs = midi.inputs.values();
+        // loop over all available inputs and listen for any MIDI input
+        for (var input = allInputs.next(); input && !input.done; input = allInputs.next()) {
+          // when a MIDI value is received call the onMIDIMessage function
+          input.value.onmidimessage = messageMIDI;
         }
       }
+      var tag = [];
 
-      const tag = [];
-      function midiMessageReceived(event) {
-        if (midi[event.data[1]] != null) {
-          port = event.data[1];
-          valeur = event.data[2];
-          switch(port) {
-            case 7:
+      function messageMIDI(MidiEvent) {
+        console.log( "qui:",MidiEvent.target.name);
+        const port = MidiEvent.data[1];
+        const valeur = MidiEvent.data[2];
+
+        // reconstitution du tag en 8 * 7 bits
+        switch(port) {
+          case 7:
+            tag[Math.floor(port/2)] += valeur;
+            document.body.innerHTML += `uuid : <strong>${tag[0].toString(16)} ${tag[1].toString(16)} ${tag[2].toString(16)} ${tag[3].toString(16)}</strong><br>`;
+            break;
+          default:
+            if (port%2 == 0) { // debut de chiffre
+              tag[Math.floor(port/2)] = valeur*128;
+            } else {
               tag[Math.floor(port/2)] += valeur;
-              outputIn.innerHTML += `uuid : <strong>${tag[0].toString(16)} ${tag[1].toString(16)} ${tag[2].toString(16)} ${tag[3].toString(16)}</strong><br>`;
-              break;
-            default:
-              //println(number,value,hex(value),"générique");
-              if (port%2 == 0) { // debut de chiffre
-                tag[Math.floor(port/2)] = valeur*128;
-              } else {
-                tag[Math.floor(port/2)] += valeur;
-                console.log(`${tag[Math.floor(port/2)].toString(16)}`)
-              }
-          }
-          // Scroll to the bottom of this div.
-          outputIn.scrollTop = outputIn.scrollHeight;
-        } else {
-          midi[event.data[1]] = {port:0,valeur:0};
+              console.log(`${tag[Math.floor(port/2)].toString(16)}`)
+            }
         }
+      }
+
+      // on failure
+      function onMIDIFailure() {
+        document.body.innerHTML= "contrôleur MIDI non reconnu";
       }
     </script>
   </body>
