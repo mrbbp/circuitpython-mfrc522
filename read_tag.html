@@ -52,23 +52,25 @@
       var tag = [];
 
       function messageMIDI(MidiEvent) {
-        console.log( "qui:",MidiEvent.target.name);
-        const port = MidiEvent.data[1];
-        const valeur = MidiEvent.data[2];
+        if (MidiEvent.data[1] != null) {
+          console.log( "qui:",MidiEvent.target.name);
+          const port = MidiEvent.data[1];
+          const valeur = MidiEvent.data[2];
 
-        // reconstitution du tag en 8 * 7 bits
-        switch(port) {
-          case 7:
-            tag[Math.floor(port/2)] += valeur;
-            document.body.innerHTML += `uuid : <strong>${tag[0].toString(16)} ${tag[1].toString(16)} ${tag[2].toString(16)} ${tag[3].toString(16)}</strong><br>`;
-            break;
-          default:
-            if (port%2 == 0) { // debut de chiffre
-              tag[Math.floor(port/2)] = valeur*128;
-            } else {
+          // reconstitution du tag en 8 * 7 bits
+          switch(port) {
+            case 7:
               tag[Math.floor(port/2)] += valeur;
-              console.log(`${tag[Math.floor(port/2)].toString(16)}`)
-            }
+              document.body.innerHTML += `uuid : <strong>${tag[0].toString(16)} ${tag[1].toString(16)} ${tag[2].toString(16)} ${tag[3].toString(16)}</strong><br>`;
+              break;
+            default:
+              if (port%2 == 0) { // debut de chiffre
+                tag[Math.floor(port/2)] = valeur*128;
+              } else {
+                tag[Math.floor(port/2)] += valeur;
+                console.log(`${tag[Math.floor(port/2)].toString(16)}`)
+              }
+          }
         }
       }
 
