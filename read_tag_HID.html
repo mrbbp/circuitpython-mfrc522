@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style media="screen">
+      @font-face {
+        font-family: SourceSansVariable;
+        font-weight: 100 800;
+        src: url(_fonts/SourceSans3VF-Roman.ttf.woff2) format("woff2");
+      }
+      * { margin:0; padding: 0; }
+      html { font-size: 100%; /* 1rem = 1em = 16px */}
+      body {
+        line-height: 120%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* deco */
+        background-color: #f0f0f0;
+        color: #333;
+        font-family: SourceSansVariable;
+        font-weight: 100;
+        min-height: 100vh;
+        font-size: 3rem;
+      }
+    </style>
+  </head>
+  <body>
+    in the console
+    <script>
+      const liste = ["88:4:60:7d","88:4:5d:1a","88:4:fd:a","88:4:c6:93"];
+      let table = [];
+      let tag = [];
+      //let index = 0;
+      let oldTag = "";
+      window.addEventListener("keydown", (event) => {
+        if (event.key !== undefined) {
+          //console.log("reçu: ",event.code);
+          switch (event.code) {
+            case "Enter": // fin du tag
+              // transform string to number
+              //oldTag = tag.toString();
+              console.log("tag :",tag.join(":"));
+              // vide tag;
+              tag = [];
+              break;
+            case "KeyM": // fin du chiffre
+              tag.push(parseInt(table.join("")).toString(16));
+              // vide table
+              table = [];
+              //index++;
+              break;
+            default:
+              // remove "Digit" in the string and push in the array
+              //console.log("code:",event.code,"key:", event.key)
+              table.push(event.code.replace(/Digit/gm, ""));
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
