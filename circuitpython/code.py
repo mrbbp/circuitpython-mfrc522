@@ -1,12 +1,10 @@
 import usb_midi
 import adafruit_midi  # MIDI protocol encoder/decoder library
 from adafruit_midi.control_change import ControlChange
-from adafruit_midi.note_off import NoteOff
 from os import uname
 import mfrc522
 import board
 import time
-from os import uname
 import digitalio
 
 led = digitalio.DigitalInOut(board.LED)
@@ -54,9 +52,6 @@ def tag_read():
   except KeyboardInterrupt:
       print("Aurevoir")
 
-
-
-global tag
 # init du midi
 USB_MIDI_channel = 1  # pick your USB MIDI out channel here, 1-16
 

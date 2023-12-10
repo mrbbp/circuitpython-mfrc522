@@ -11,6 +11,7 @@ tried to strip things down and make them more "pythonic" so the result is small 
 [CircuitPython](https://github.com/adafruit/circuitpython) boards.
 
 ## Usage
+![le Montage](medias/montage.jpg)
 
 Put the modules ``mfrc522.py``, ``examples/read.py``, ``examples/write.py`` to the root of the flash FS on your board.
 
@@ -37,34 +38,38 @@ For detecting, authenticating and writing to a card:
 This will wait for a MifareClassic 1k card. As soon the card is detected, it is authenticated, and
 16 bytes written to address 0x08.
 
-`code.py` :
+`circuitpython/code.py` :
 lit le tag sur le lecteur (refactor du code de `do_read.py`), envoie l'uuid en `controlChange` midi (port 0 à 7) en 2 * 7bits.
+
+> nb: les uuid de tags nfc sont encodés en 4 * 8bits(0-255). Le midi supporte uniquement des nombres jusqu'à 7bits (0-127). Le nombre est découpé et envoyé en 2 * 7 bits (2 `controlChange` midi) et reconstitué dans le code de lecture (en html et Processing, ici).
 
 ## récupération de l'uuid (midiEvent) en js
 ``` js
-function midiMessageReceived(event) {
-    if (midi[event.data[1]] != null) {
-      port = event.data[1];
-        valeur = event.data[2];
-        switch(port) {
-          case 7:
+function messageMIDI(MidiEvent) {
+    if (MidiEvent.data[1] != null) {
+      console.log( "qui:",MidiEvent.target.name);
+      const port = MidiEvent.data[1];
+      const valeur = MidiEvent.data[2];
+    
+      // reconstitution du tag en 8 * 7 bits
+      switch(port) {
+        case 7:
+          tag[Math.floor(port/2)] += valeur;
+          document.body.innerHTML += `uuid : <strong>${tag[0].toString(16)} ${tag[1].toString(16)} ${tag[2].toString(16)} ${tag[3].toString(16)}</strong><br>`;
+          break;
+        default:
+          if (port%2 == 0) { // debut de chiffre
+            tag[Math.floor(port/2)] = valeur*128;
+          } else {
             tag[Math.floor(port/2)] += valeur;
-            document.body.innerHTML += `uuid : <strong>${tag[0].toString(16)} ${tag[1].toString(16)} ${tag[2].toString(16)} ${tag[3].toString(16)}</strong><br>`;
-            break;
-          default:
-            //println(number,value,hex(value),"générique");
-            if (port%2 == 0) { // debut de chiffre
-              tag[Math.floor(port/2)] = valeur*128;
-            } else {
-              tag[Math.floor(port/2)] += valeur;
-              console.log(`${tag[Math.floor(port/2)].toString(16)}`)
-            }
-        }
+            console.log(`${tag[Math.floor(port/2)].toString(16)}`)
+          }
+      }
     }
 }
 ```
 
-## récupération de l'uuid avec themidibus avec Processing
+## récupération de l'uuid (themidibus) en Processing
 ```processing
 import themidibus.*;
 
@@ -94,3 +99,5 @@ void controllerChange(int channel, int number, int value) {
     }
 }
 ```
+## Compatibilité
+l'api Midi est supportée sur **Chrome** Desktop et mobile, sur **Firefox Desktop** (à condition de redémarrer le navigateur après branchement du lecteur+RP2040). Sur Edge et Opera Desktop (non testé). Safari ne supporte pas le midi.
