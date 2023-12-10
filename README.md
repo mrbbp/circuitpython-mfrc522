@@ -99,6 +99,39 @@ void controllerChange(int channel, int number, int value) {
     }
 }
 ```
+
+## récupération de l'uuid (HID) en js
+```js
+let table = [];
+let tag = [];
+//let index = 0;
+let oldTag = "";
+window.addEventListener("keydown", (event) => {
+    if (event.key !== undefined) {
+      //console.log("reçu: ",event.code);
+      switch (event.code) {
+        case "Enter": // fin du tag
+          // transform string to number
+          //oldTag = tag.toString();
+          console.log("tag :",tag.join(":"));
+          // vide tag;
+          tag = [];
+          break;
+        case "KeyM": // fin du chiffre
+          tag.push(parseInt(table.join("")).toString(16));
+          // vide table
+          table = [];
+          //index++;
+          break;
+        default:
+          // remove "Digit" in the string and push in the array
+          //console.log("code:",event.code,"key:", event.key)
+          table.push(event.code.replace(/Digit/gm, ""));
+      }
+    }
+});
+```
+
 ## Compatibilité
 l'api Midi est supportée sur **Chrome** Desktop et mobile, sur **Firefox Desktop** (à condition de redémarrer le navigateur après branchement du lecteur+RP2040). Sur Edge et Opera Desktop (non testé). Safari ne supporte pas le midi.
 
