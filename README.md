@@ -101,3 +101,6 @@ void controllerChange(int channel, int number, int value) {
 ```
 ## Compatibilité
 l'api Midi est supportée sur **Chrome** Desktop et mobile, sur **Firefox Desktop** (à condition de redémarrer le navigateur après branchement du lecteur+RP2040). Sur Edge et Opera Desktop (non testé). Safari ne supporte pas le midi.
+
+### tag_action_exemple.html
+est un exemple d'usage avec 3 tags qui permettent de scroller un contenu (une section de 100vh).
