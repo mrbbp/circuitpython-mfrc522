@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style media="screen">
+      @font-face {
+        font-family: SourceSansVariable;
+        font-weight: 100 800;
+        src: url(_fonts/SourceSans3VF-Roman.ttf.woff2) format("woff2");
+      }
+      * { margin:0; padding: 0; }
+      html { font-size: 100%; /* 1rem = 1em = 16px */}
+      body {
+        line-height: 120%;
+        /* deco */
+        background-color: #f0f0f0;
+        color: #333;
+        font-family: SourceSansVariable;
+        font-weight: 100;
+        box-sizing: border-box;
+        padding: 0 1rem;
+        transition: all 600ms ease-in-out;
+        overflow: hidden;
+      }
+      section {
+        height: calc(100vh - 2rem);
+        margin: 1rem 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 10rem;
+        font-weight: 800;
+      }
+      #s_0 {
+        background-color: red;
+      }
+      #s_1 {
+        background-color: yellow;
+      }
+      #s_2 {
+        background-color: yellow;
+      }
+    </style>
+  </head>
+  <body>
+    <section id="s_0">1</section>
+    <section id="s_1">2</section>
+    <section id="s_2">3</section>
+    <script>
+      var midi, data;
+      console.log("UA :",navigator.userAgent);
+      // start talking to MIDI controller
+      if (navigator.requestMIDIAccess) {
+        navigator.requestMIDIAccess({
+          sysex: false
+        }).then(onMIDISuccess, onMIDIFailure);
+      } else {
+        document.body.innerHTML = "<strong>PAS de support MIDI</strong>";
+      }
+
+      // on success
+      function onMIDISuccess(midiData) {
+        document.querySelector("#s_0").style.backgroundColor = "lime";
+        //document.body.innerHTML = "<strong>support du midi</strong> Placez un tag sur le lecteur<br>"
+        // this is all our MIDI data
+        midi = midiData;
+        var allInputs = midi.inputs.values();
+        // loop over all available inputs and listen for any MIDI input
+        for (var input = allInputs.next(); input && !input.done; input = allInputs.next()) {
+          // when a MIDI value is received call the onMIDIMessage function
+          input.value.onmidimessage = messageMIDI;
+        }
+      }
+      var tag = [];
+      var oldTag = [];
+      // liste des tags
+      liste = ["136,4,96,125","136,4,93,26","136,4,253,100"];
+      function messageMIDI(MidiEvent) {
+        if (MidiEvent.data[1] != null) {
+          //console.log( "qui:",MidiEvent.target.name);
+          const port = MidiEvent.data[1];
+          const valeur = MidiEvent.data[2];
+
+          // reconstitution du tag en 8 * 7 bits
+          switch(port) {
+            case 7:
+              tag[Math.floor(port/2)] += valeur;
+              if (tag.toString() != oldTag.toString()) {
+                // nouveau tag
+                oldTag = [...tag]; // copie le tag dans oldTag
+                console.log(tag.toString());
+                action(); // déplace le body pour montrer la section correspondante
+                //document.body.innerHTML += `uuid : <strong>${tag[0].toString(16)} ${tag[1].toString(16)} ${tag[2].toString(16)} ${tag[3].toString(16)}</strong><br>`;
+              } else {
+                // même tag
+                console.log("même tag");
+              }
+              break;
+            default:
+              if (port%2 == 0) { // debut de chiffre
+                tag[Math.floor(port/2)] = valeur*128;
+              } else {
+                tag[Math.floor(port/2)] += valeur;
+                //console.log(`${tag[Math.floor(port/2)].toString(16)}`)
+              }
+          }
+        }
+      }
+      // on failure
+      function onMIDIFailure() {
+        document.body.innerHTML= "contrôleur MIDI non reconnu";
+      }
+      function action() {
+        // teste le tag encours dans la liste
+        liste.forEach((item, i) => {
+          if (item == tag.toString()) {
+            // déplace le body (margin-top)
+            document.body.style.marginTop = `calc(-${i*100}vh + ${i}rem)`;
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
